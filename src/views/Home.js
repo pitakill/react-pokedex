@@ -1,41 +1,16 @@
 import React from 'react'
-import _ from 'lodash'
-import { getPokemon } from '../services/pokemon'
 import PokedexCard from '../components/PokedexCard'
+import { ContextPokemon } from '../Context'
 
 class Home extends React.Component {
-  state = {
-    pokemon: [],
-    limit: 12,
-    filter: ''
+  static contextType = ContextPokemon
+
+  componentDidMount() {
+    this.context.getPokemon()
   }
 
-  async componentDidMount() {
-    try {
-      const { data: pokemon } = await getPokemon()
-      await this.setState({ pokemon })
-    } catch(error) {
-      console.error(error)
-    }
-  }
-
-  filteredPokemon = () => {
-    let filteredPokemon = (this.state.filter === '') ? this.state.pokemon : this.state.pokemon.filter(item => {
-      return _.includes(item.name.toLowerCase(), this.state.filter.toLowerCase())
-    })
-    return filteredPokemon.slice(0, this.state.limit)
-  }
-
-  showMorePokemon = () => {
-    this.setState({limit: this.state.limit + 12}, this.filteredPokemon)
-  }
-
-  handleChangeFilter = event => {
-    this.setState({ filter: event.target.value })
-  }
-
-  printPokemon = () => (
-    this.filteredPokemon().map((item, index) => (
+  printPokemon = pokemon => (
+    this.context.filteredPokemon().map((item, index) => (
       <div
         className="col-md-4 col-lg-3 mb-3"
         key={index}
@@ -51,8 +26,12 @@ class Home extends React.Component {
   }
 
   printButton = () => (
-   this.state.filter === ''
-    ? <button className="btn btn-primary" onClick={this.showMorePokemon}>Cargar más pokemon</button>
+   this.context.state.filter === ''
+    ? <button className="btn btn-primary"
+        onClick={ this.context.showMorePokemon }
+      >
+        Cargar más pokemon
+      </button>
     : null
   )
 
@@ -69,9 +48,12 @@ class Home extends React.Component {
                     type="text"
                     className="form-control"
                     placeholder="Introduce el nombre del pokemon"
-                    onChange={ this.handleChangeFilter }
+                    onChange={ this.context.handleChangeFilter }
+                    value={ this.context.state.filter }
                   />
-                  <small id="emailHelp" className="form-text text-muted">Actualmente solo se pueden hacer búsquedas por nombre</small>
+                  <small id="emailHelp" className="form-text text-muted">
+                    Actualmente solo se pueden hacer búsquedas por nombre
+                  </small>
                 </div>
               </div>
             </div>
